@@ -3,6 +3,13 @@
 
 This is an official implementation with PyTorch, and we run our code on Ubuntu 18.04 server. More experimental details can be found in our paper.
 
+# Dependencies
+- python 3.7+
+- pytorch 1.4+
+- numpy
+- tqdm
+- scikit-learn
+- cvxopt
 
 # Abstract
 
@@ -13,6 +20,28 @@ we present the first trial in this paper to optimize this new metric. The critic
 # Experiments
 
 ![Exp](https://github.com/statusrank/A-Generic-Framework-for-Optimizing-Two-way-Partial-AUC/blob/main/img/Exp.png)
+
+
+# How to Run
+- First of all, u need to install the dependencies by 
+```
+pip3 install -r requirements.txt
+```
+- Demo of training
+```
+  CUDA_VISIBLE_DEVICES=3 python3 train.py dataset-name method-name --alpha_value --beta_value
+```
+For example, 
+
+```
+
+```
+## Additional Explanation
+In terms of the hyper-parameters details, it can be found in the paper's [supp material](https://github.com/statusrank/A-Generic-Framework-for-Optimizing-Two-way-Partial-AUC/blob/main/TPAUC.pdf).
+
+Note that, for the hyper-parameter \gamma(r) of Poly model, there is a litter difference. The best parameter gamma'(in our implementation) = 1/ (r - 1). 
+
+For example, with respect to Poly on cifar-10-LT subset-1, r = 11 in the paper, and thus we set gamma' = 1 / (11 - 1)=0.1 in the corresponding json file.
 
 # Citation
 Please cite our paper if you use this code in your own work.
