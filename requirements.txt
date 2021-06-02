@@ -1,0 +1,5 @@
+pytorch
+numpy
+tqdm
+scikit-learn
+cvxopt
