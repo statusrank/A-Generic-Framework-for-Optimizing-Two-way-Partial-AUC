@@ -34,7 +34,14 @@ pip3 install -r requirements.txt
 For example, 
 
 ```
+CUDA_VISIBLE_DEVICES=0 python3 train.py cifar-10-long-tail Exp 
+```
 
+You can also config run.sh and run it:
+
+```
+chmox +x run.sh
+./run.sh
 ```
 ## Additional Explanation
 In terms of the hyper-parameters details, it can be found in the paper's [supp material](https://github.com/statusrank/A-Generic-Framework-for-Optimizing-Two-way-Partial-AUC/blob/main/TPAUC.pdf).
