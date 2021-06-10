@@ -86,7 +86,7 @@ class Dataset(BaseDataset):
         self.targets = None
 
         if args.get('npy_style', False):
-            self.tmp = np.load(self.data_dir + '.npy').item()
+            self.tmp = np.load(self.data_dir + '.npy', allow_pickle=True).item()
             self.data = self.tmp['data']
             self.targets = self.tmp['targets']
             assert len(self.data) == len(self.targets)

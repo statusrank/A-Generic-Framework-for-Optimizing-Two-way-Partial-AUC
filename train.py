@@ -21,6 +21,7 @@ from itertools import product
 from torch.utils.data import DataLoader
 import copy
 from collections import defaultdict
+import pdb
 
 def test(model, loader, class_dim, params):
     model.eval()
@@ -141,27 +142,22 @@ def train(args, use_test=True, idx=0):
     best_p2auc = p2auc
 
     for epoch in range(epoch_num):
-        logger.info('\n========> Epoch %3d: '%epoch) 
+        logger.info('\n========> Epoch %3d: '% epoch) 
         for it, (bx, by) in enumerate(train_loader):
             bx, by = bx.cuda().float(), by.cuda().long()
             
-            # start training step
             model.train()
-
             pred = model(bx)
-
             loss = criterion(pred, by.view(-1), epoch)
-            
+        
             optmizer.zero_grad()
             loss.backward()
             optmizer.step()
-            
-            # end training step
+        
             global_step += 1
 
-
             if it % 100 == 0 or it == len(train_loader) - 1:
-                logger.info('Iter %4d/%4d:  loss: %.4f'%(it, len(train_loader), loss.mean().item()))
+                logger.info('Iter %4d/%4d:  loss: %.4f'%(it, len(train_loader), loss.item()))
         
         logger.info('\nEvaluating training set...')
         p2auc = test(model, train_loader, train_set.get_class_dim(), args.training.metric_params)
@@ -188,7 +184,6 @@ def train(args, use_test=True, idx=0):
     return test_p2auc
 
 if __name__ == "__main__":
-
     
     json_path = sys.argv[2]
     if sys.argv[1].startswith('cifar'):
@@ -220,10 +215,7 @@ if __name__ == "__main__":
     if not osp.exists(args.training.save_path):
         os.makedirs(args.training.save_path)
 
-    if loss_type not in ["CELoss", "CBCE", "FOCAL", "CBFOCAL", "SquareAUCLoss", "Poly", 'Exp']:
+    if loss_type not in ["CELoss", "CBCE", "FOCAL", "CBFOCAL", "SquareAUCLoss", "Poly", 'Exp', 'TPAUCLoss']:
         raise ValueError("{} is not included".format(loss_type))
-
-    # if loss_type in ["Poly", 'Exp']:
-    #     args.training.loss_type = "TPAUC"
 
     test_p2auc = train(args, use_test=True, idx=0)

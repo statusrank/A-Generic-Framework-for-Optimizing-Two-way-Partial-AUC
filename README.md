@@ -5,11 +5,14 @@ This is an official implementation with PyTorch, and we run our code on Ubuntu 1
 
 # Dependencies
 - python 3.7+
-- pytorch 1.4+
+- pytorch 1.8
 - numpy
 - tqdm
 - scikit-learn
+- scikit-image
 - cvxopt
+- lmdb
+- easydict
 
 # Abstract
 
@@ -27,6 +30,11 @@ we present the first trial in this paper to optimize this new metric. The critic
 ```
 pip3 install -r requirements.txt
 ```
+and 
+```
+conda create --name <env> --file conda_req.txt
+```
+
 - Demo of training
 ```
   CUDA_VISIBLE_DEVICES=3 python3 train.py dataset-name method-name --alpha_value --beta_value
