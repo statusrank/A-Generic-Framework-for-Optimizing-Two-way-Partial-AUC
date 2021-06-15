@@ -10,7 +10,6 @@ This is an official implementation with PyTorch, and we run our code on Ubuntu 1
 - tqdm
 - scikit-learn
 - scikit-image
-- cvxopt
 - lmdb
 - easydict
 
@@ -30,17 +29,14 @@ we present the first trial in this paper to optimize this new metric. The critic
 ```
 pip3 install -r requirements.txt
 ```
-and 
-```
-conda create --name <env> --file conda_req.txt
-```
+- Then you need to set the corresponding params on the params/*.json file. 
+For example, set the corresponding class-id as 1 in "class2id" to run on the different subsets.
 
 - Demo of training
 ```
   CUDA_VISIBLE_DEVICES=3 python3 train.py dataset-name method-name --alpha_value --beta_value
 ```
-For example, 
-
+For instance, 
 ```
 CUDA_VISIBLE_DEVICES=0 python3 train.py cifar-10-long-tail Exp 
 ```
@@ -54,9 +50,7 @@ chmox +x run.sh
 ## Additional Explanation
 In terms of the hyper-parameters details, it can be found in the paper's [supp material](https://github.com/statusrank/A-Generic-Framework-for-Optimizing-Two-way-Partial-AUC/blob/main/TPAUC.pdf).
 
-Note that, for the hyper-parameter \gamma(r) of Poly model, there is a litter difference. The best parameter gamma'(in our implementation) = 1/ (r - 1). 
-
-For example, with respect to Poly on cifar-10-LT subset-1, r = 11 in the paper, and thus we set gamma' = 1 / (11 - 1)=0.1 in the corresponding json file.
+Note that, for the hyper-parameter \gamma(r) of Poly model, there is a litter difference. The best parameter gamma'(in our implementation) = 1 / (r - 1). 
 
 # Citation
 Please cite our paper if you use this code in your own work.

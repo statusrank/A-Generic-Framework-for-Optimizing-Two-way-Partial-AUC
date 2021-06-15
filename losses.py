@@ -6,7 +6,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 from abc import abstractmethod
-from backward_helpers import ExpLossPerClass, SqLossPerClass, HingeLossPerClass
 import numpy as np 
 
 from abc import abstractmethod
@@ -40,161 +39,6 @@ class BaseLoss(nn.Module):
 
     def forward(self, logit, target, **kwargs):
         pass
-
-
-class AUCLoss(BaseLoss):
-    """
-
-    The class for AUC losses optimizing 
-
-           AUC_l = (1/ (numPos * numNeg) ) *  \sum_{i=1}^{numPos} \sum_{j=1}^{numNeg} l(pred_i - pred_j; gamma)
-
-    Function l(.;gamma) is a given surrogate loss (could be squared loss, exp loss, etc.) where gamma is a hyperparameter to be tuned
-    pred is the predicted score vector
-    pred_i is a predicted score from a positive class
-    pred_j is a predicied score from a negative class 
-
-    To include a specific loss functrion l, one only needs to implement calLossPerCLassNaive method.
-
-    We also implement manual backprop in ./backward_helpers.py to make sure that the compuation could be done in a right order. 
-
-    """
-
-    def __init__(self,
-                 gamma=1,
-                 num_classes = 2,
-                 backward_helper = None,
-                 useManualBackprop=False,
-                 **kwargs):
-        """
-
-        :param backward_helper: assign the manual backprop function, shoule be invisible to users
-        :param gamma: the hyperparameter of the loss function >0
-        :param useManualBackprop: a boolean variable indicating whether manual backprop should be triggerd.
-
-        """
-
-        super(AUCLoss, self).__init__()
-
-        self.gamma = gamma
-        self.useManualBackprop = useManualBackprop
-        self.backward_helper = backward_helper
-
-    def forward(self, logit, target, epoch=0):
-        """
-
-        :param pred: the predicted score vector
-        :param target: the GT label vector
-
-        """
-        pred, target = self.preprocess_inputs(logit, target)
-
-        Y = target.float()
-        numPos = torch.tensor(Y.sum(0)).float().cuda()  # [classes, 1]
-        numNeg = torch.tensor((1 - Y).sum(0)).float().cuda()
-
-        Dp, Dn = 1.0 / numPos, 1.0 / numNeg
-        Yp, Yn = Dp * (Y.float()), Dn * ((1 - Y).float())
-        return self.calLossPerCLass(pred, Y, Yp, Yn, epoch)
-
-    def calLossPerCLass(self, pred, Y, Yp, Yn, epoch):
-
-        if not self.useManualBackprop:
-            return self.calLossPerCLassNaive(pred, Y, Yp, Yn, epoch)
-
-        return self.backward_helper.apply(pred, Y, Yp, Yn, self.gamma)
-
-    @abstractmethod
-    def calLossPerCLassNaive(self, pred, Y, Yp, Yn, epoch=0):
-        pass
-
-
-class SquareAUCLoss(AUCLoss):
-    """
-    An implementation of squared loss based AUC optimization, where l(x;gamma) = 0.5 * (gamma-x)^2
-    The corresponding objective function is :
-           AUC_l = (1/ (numPos * numNeg) ) *  \sum_{i=1}^{numPos} \sum_{j=1}^{numNeg} ((pred_i - pred_j) -gamma)^2
-    """
-
-    def __init__(self, gamma=1, useManualBackprop=False, **kwargs):
-        super(SquareAUCLoss, self).__init__(gamma, SqLossPerClass,
-                                            useManualBackprop, **kwargs)
-
-    def calLossPerCLassNaive(self, pred, Y, Yp, Yn, epoch=0):
-        diff = pred - self.gamma * Y
-        weight1 = Yp + Yn
-        A = diff.mul(weight1).dot(diff)
-        B = (diff.dot(Yn)) * (Yp.dot(diff))
-        return A - 2 * B
-
-
-class TPSquareAUCLoss(AUCLoss):
-    """
-    An implementation of squared loss based AUC optimization, where l(x;gamma) = 0.5 * (gamma-x)^2
-    The corresponding objective function is :
-           AUC_l = (1/ (numPos * numNeg) ) *  \sum_{i=1}^{numPos} \sum_{j=1}^{numNeg} ((pred_i - pred_j) -gamma)^2
-    """
-
-    def __init__(self, re_scheme, epoch_to_paced, gamma=1, useManualBackprop=False, **kwargs):
-        super(TPSquareAUCLoss, self).__init__(gamma, SqLossPerClass,
-                                            useManualBackprop, **kwargs)
-        
-        self.epoch_to_paced = epoch_to_paced
-
-        if re_scheme not in ["Exp", 'Poly']:
-            raise ValueError
-
-        self.re_scheme = re_scheme
-
-    def calLossPerCLassNaive(self, pred, Y, Yp, Yn, epoch=0):
-
-        def un_weight(pred, Y, Yp, Yn):
-            diff = pred - Y
-            weight1 = Yp + Yn
-            A = diff.mul(weight1).dot(diff)
-            B = (diff.dot(Yn)) * (Yp.dot(diff))
-            return 0.5 * A - B
-        
-        if epoch < self.epoch_to_paced:
-            return un_weight(pred, Y, Yp, Yn)
-
-        numPos = torch.tensor(Y.sum(0)).float().cuda()  # [classes, 1]
-        numNeg = torch.tensor((1 - Y).sum(0)).float().cuda()
-
-        wp, wn = self.re_weight(pred, Y)
-        wps = wp.sum()
-        wns = wn.sum()
-
-        diff = pred - Y
-
-        Ywp= wp * Yp /numNeg
-        Ywn= wn * Yn /numPos
-        weight1 = wns * Ywp  + wps * Ywn
-
-        A = diff.mul(weight1).dot(diff)
-        B = (diff.dot(Ywp)) * (Ywn.dot(diff))
-        return 0.5 * A - B
-
-    
-
-    def re_weight(self, pred, Y):
-        '''
-        return:
-            must be the (len(pred_p), len(pred_n)) matrix 
-                    for element-wise multiplication
-        '''
-
-        if self.re_scheme == 'Poly':
-            w_plus = torch.pow((1 - pred), self.gamma) * Y.float().cuda()
-            w_minus = torch.pow(pred, self.gamma) * (1 - Y).float().cuda()
-        elif self.re_scheme == 'Exp':
-
-            w_plus = (1 - torch.exp(- self.gamma * (1 - pred))) * Y.float().cuda()
-            w_minus = (1 - torch.exp(- self.gamma * pred)) * (1 - Y).float().cuda()
-        else:
-            raise ValueError
-
-        return Variable(w_plus), Variable(w_minus) # (n_+ + n_-, 1)
 
 class CELoss(BaseLoss):
     def __init__(self, reduction='mean', **kwargs):
@@ -309,6 +153,27 @@ class CBCELoss(BaseLoss):
             return F.binary_cross_entropy_with_logits(logit.view(-1), target.float(), weight=weight)
         else:
             return F.cross_entropy(logit, target, weight=self.weight)
+
+
+class SquareAUCLoss(BaseLoss):
+    def __init__(self, gamma=1, useManualBackprop=False, **kwargs):
+        super(SquareAUCLoss, self).__init__()
+        self.gamma = gamma
+        self.reduction = 'mean'
+
+    def forward(self, logit, target, epoch=0):
+        pred, target = self.preprocess_inputs(logit, target)
+        pred_p = pred[target.eq(1)]
+        pred_n = pred[target.ne(1)]
+
+        n_plus, n_minus = len(pred_p), len(pred_n)
+
+        pred_p = pred_p.unsqueeze(1).expand(n_plus, n_minus)
+        pred_n = torch.reshape(pred_n, (1, n_minus))
+
+        loss = (self.gamma + pred_n - pred_p) ** 2
+        
+        return loss.mean() if self.reduction == 'mean' else loss.sum()
 
 class TPAUCLoss(BaseLoss):
     def __init__(self, gamma, 
