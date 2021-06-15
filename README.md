@@ -34,7 +34,7 @@ For example, set the corresponding class-id as 1 in "class2id" to run on the dif
 
 - Demo of training
 ```
-  CUDA_VISIBLE_DEVICES=3 python3 train.py dataset-name method-name --alpha_value --beta_value
+  CUDA_VISIBLE_DEVICES=3 python3 train.py dataset-name method-name
 ```
 For instance, 
 ```
