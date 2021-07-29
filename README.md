@@ -38,7 +38,7 @@ For example, set the corresponding class-id as 1 in "class2id" to run on the dif
 ```
 For instance, 
 ```
-CUDA_VISIBLE_DEVICES=0 python3 train.py cifar-10-long-tail TPSquareAUCLoss
+CUDA_VISIBLE_DEVICES=0 python3 train.py cifar-10-long-tail TPAUCLoss
 ```
 
 You can also config run.sh and run it:
@@ -60,7 +60,7 @@ Please cite our paper if you use this code in your own work.
 author    = {Zhiyong Yang, Qianqian Xu, Shilong Bao, Yuan He, Xiaochun Cao and Qingming Huang},
   title     = {When All We Need is a Piece of the Pie: A Generic Framework for Optimizing Two-way Partial AUC},
   booktitle = {ICML},
-  pages     = {},
+  pages     = {11820--11829},
   year      = {2021}
 
 ```

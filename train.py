@@ -215,7 +215,7 @@ if __name__ == "__main__":
     if not osp.exists(args.training.save_path):
         os.makedirs(args.training.save_path)
 
-    if loss_type not in ["CELoss", "CBCE", "FOCAL", "CBFOCAL", "SquareAUCLoss", "Poly", 'Exp', 'TPAUCLoss']:
+    if loss_type not in ["SquareAUCLoss", 'TPAUCLoss']:
         raise ValueError("{} is not included".format(loss_type))
 
     test_p2auc = train(args, use_test=True, idx=0)
