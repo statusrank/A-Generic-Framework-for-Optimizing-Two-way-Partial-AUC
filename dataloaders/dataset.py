@@ -51,37 +51,6 @@ class Dataset(BaseDataset):
         self._num_classes = len(self._cls_num_list)
         self._class_dim = len(set(self._labels))
 
-    def self_paced_samples(self, mask_label=None):
-
-        r'''
-        This function is adopted to dynamically select tough samples to use to train,
-            only used for self-paced learning process. 
-        '''
-        if mask_label is None:
-            return 
-        
-        print("len of img list %d" % len(self.img_list))
-        print("len of mask label %d" % len(mask_label))
-        assert len(self.img_list) == len(mask_label)
-
-        img_list = [img for (img, mask) in zip(self.img_list, mask_label) if mask ]
-
-        assert sum(mask_label) == len(img_list)
-
-        self.metas = [(i, self.class2id[i.split('/')[-2]]) for i in img_list]
-
-        self._num = len(self.metas)
-        print('%s set has %d images' % (self.split, self.__len__()))
-        # logger.info('%s set has %d images' % (self.split, self.__len__()))
-
-        self._labels = [i[1] for i in self.metas]
-        self._cls_num_list = pd.Series(self._labels).value_counts().sort_index().values
-        self._freq_info = [
-            num * 1.0 / sum(self._cls_num_list) for num in self._cls_num_list
-        ]
-        self._num_classes = len(self._cls_num_list)
-        self._class_dim = len(set(self._labels))
-
     def load_image(self, img_filename):
         return pil_loader(img_filename)
 

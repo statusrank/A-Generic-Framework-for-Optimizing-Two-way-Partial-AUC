@@ -128,59 +128,6 @@ class Dataset(BaseDataset):
         self._class_dim = len(set(self._labels))
         print('class number: ', self._cls_num_list)
 
-    def self_paced_samples(self, mask_label=None):
-
-        r'''
-        This function is adopted to dynamically select tough samples to use to train,
-            only used for self-paced learning process. 
-        '''
-        if mask_label is None:
-            return
-        
-        print("len of img list %d" % len(self.img_list))
-        print("len of mask label %d" % len(mask_label))
-        assert len(self.img_list) == len(mask_label)
-
-        img_list = [img for (img, mask) in zip(self.img_list, mask_label) if mask ]
-
-        assert sum(mask_label) == len(img_list)
-
-
-        if self.args.get('npy_style', False):
-            data = [i for (i, mask) in zip(self.data, mask_label) if mask]
-            targets = [i for (i, mask) in zip(self.targets, mask_label) if mask]
-            assert len(data) == len(targets)
-            self.img_list = ['%08d'%i for i in range(len(self.data))]
-            self.metas = []
-            for i in range(len(targets)):
-                cls_id = self.class2id.get(str(targets[i]), 0)
-                if cls_id >= 0:
-                    self.metas.append((data[i], cls_id))
-            
-            self.args.use_lmdb = False
-        else:
-            self.metas = [(i, self.class2id[i.split('/')[-2]]) for i in img_list]
-
-        self._num = len(self.metas)
-        print('%s set has %d images' % (self.split, self.__len__()))
-        # logger.info('%s set has %d images' % (self.split, self.__len__()))
-
-        self._labels = [i[1] for i in self.metas]
-        self._cls_num_list = pd.Series(self._labels).value_counts().sort_index().values
-        self._freq_info = [
-            num * 1.0 / sum(self._cls_num_list) for num in self._cls_num_list
-        ]
-        self._num_classes = len(self._cls_num_list)
-        self._class_dim = len(set(self._labels))
-
-        if self.args.get('use_lmdb', False):
-            self.lmdb_dir = osp.join(self.args.lmdb_dir, self.split + '.lmdb')
-            build_lmdb(self.lmdb_dir, self.metas)
-            self.initialized = False
-            self._load_image = self._load_image_lmdb
-        else:
-            self._load_image = self._load_image_pil
-
     def _init_lmdb(self):
         if not self.initialized:
             env = lmdb.open(self.lmdb_dir, readonly=True, lock=False, readahead=False, meminit=False)
