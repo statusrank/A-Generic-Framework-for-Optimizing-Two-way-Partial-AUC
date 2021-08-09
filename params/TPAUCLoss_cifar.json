@@ -30,7 +30,7 @@
 		"loss_type": "TPAUCLoss",
 		"loss_params": {"gamma": 0.01, "reduction": "mean", "epoch_to_paced": 8,
 			"re_scheme" : "Poly", "norm": false},
-		"lr": 1e-3,
+		"lr": 5e-4,
 		"weight_decay": 1e-5,
 		"momentum": 0.9,
 		"nesterov": true,
