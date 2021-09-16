@@ -5,7 +5,7 @@ This is an official implementation with PyTorch, and we run our code on Ubuntu 1
 
 # Dependencies
 - python 3.7+
-- pytorch 1.8
+- pytorch 1.8+
 - numpy
 - tqdm
 - scikit-learn
