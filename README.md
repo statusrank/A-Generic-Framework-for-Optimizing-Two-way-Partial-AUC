@@ -3,6 +3,9 @@
 
 This is an official implementation with PyTorch, and we run our code on Ubuntu 18.04 server. More experimental details can be found in our paper.
 
+# To all interested researchers
+**The authors have open-sourced an end-to-end PyTorch library for X metrics learning (including partial AUC studied by this work and other state-of-the-art x-metric-learning algorithms) in machine learning**. Please refer to [XCurve](https://github.com/statusrank/XCurve) for more details. We hope our library can help you deploy/attain your ML model conveniently and easily. Thanks for all!  
+
 # Dependencies
 - python 3.7+
 - pytorch 1.8+
