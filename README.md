@@ -6,6 +6,12 @@ This is an official implementation with PyTorch, and we run our code on Ubuntu 1
 # To all interested researchers
 **The authors have open-sourced an end-to-end PyTorch library for X metrics learning (including partial AUC studied by this work and other state-of-the-art x-metric-learning algorithms) in machine learning**. Please refer to [XCurve](https://github.com/statusrank/XCurve) for more details. We hope our library can help you deploy/attain your ML model conveniently and easily. Thanks for all!  
 
+# Update
+- 2022.7.7 
+  The authors notice that the reproduction of our proposed algorithms on small datasets, such as CIFAR-10 and CIFAR-100, seems not to be stable, since the version/environment upgraded, tiny initialization changed, or some other potential reasons. But we also observe that the results on the larger dataset such as TINY-IMAGENET-200 are the same or even better than those reported in our paper. Due to the limitations, we refer the readers to our [XCurve](https://github.com/statusrank/XCurve/tree/master/example) library to see how to run our algorithms in the TINY-IMAGENET-200 dataset. Thanks for all!
+
+
+
 # Dependencies
 - python 3.7+
 - pytorch 1.8+
